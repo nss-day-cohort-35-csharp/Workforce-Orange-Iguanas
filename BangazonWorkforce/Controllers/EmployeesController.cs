@@ -7,6 +7,8 @@ using BangazonWorkforce.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using BangazonWorkforce.Models.ViewModel;
 
 namespace BangazonWorkforce.Controllers
 {
@@ -27,9 +29,9 @@ namespace BangazonWorkforce.Controllers
         // GET: Employees
         public ActionResult Index()
         {
-            List<Employee> employees = GetAllEmployees();
+            var employees = GetAllEmployees();
             return View(employees);
-            return View();
+
         }
 
         // GET: Employees/Details/5
@@ -41,7 +43,22 @@ namespace BangazonWorkforce.Controllers
         // GET: Employees/Create
         public ActionResult Create()
         {
-            return View();
+            var departments = GetDepartments().Select(d => new SelectListItem
+            {
+                Text = d.Name,
+                Value = d.Id.ToString()
+            }).ToList();
+
+            var viewModel = new EmployeeViewModel()
+            {
+                Employee = new Employee(),
+                Departments = departments
+
+            };
+
+            return View(viewModel);
+
+
         }
 
         // POST: Employees/Create
@@ -105,46 +122,89 @@ namespace BangazonWorkforce.Controllers
             {
                 return View();
             }
-            }
-            private List<Employee> GetAllEmployees()
+        }
+
+        private List<Employee> GetAllEmployees()
+        {
+            // step 1 open the connection
+            using SqlConnection conn = Connection;
+            conn.Open();
+            using (SqlCommand cmd = conn.CreateCommand())
             {
-                // step 1 open the connection
-                using SqlConnection conn = Connection;
-                conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                // step 2. create the query
+                cmd.CommandText = @"Select e.Id, e.FirstName, e.LastName,  d.[Name] As Department FROM Employee e 
+
+                                    Left Join Department d ON e.DepartmentId = d.Id";
+                                 
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                // create a collection to keep the list of cohorts
+                List<Employee> employees = new List<Employee>();
+
+                // run the query and hold the results in an object
+                while(reader.Read())
                 {
-                    // step 2. create the query
-                    cmd.CommandText = @"SELECT Id, Firstname, LastName, DepartmentId FROM Employee
-                                                ";
-
-                    SqlDataReader reader = cmd.ExecuteReader();
-
-                    // create a collection to keep the list of cohorts
-                    List<Employee> employees = new List<Employee>();
-
-                    // run the query and hold the results in an object
-                    while (reader.Read())
-                    {   
-                        Employee employee = new Employee
+                    Employee employee = new Employee
+                    {
+                        Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                        FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                        LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                        Department = new Department
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
-                            DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                       
+                          
+                            Name = reader.GetString(reader.GetOrdinal("Department"))
+                            
+                        }
 
 
-                        };
 
-                        //add to the list of cohorts 
-                        employees.Add(employee);
-                    }
+                    };
+                    employees.Add(employee);
+                
+                    //add to the list of cohorts 
 
+
+                    
                     //close the connection and return the list of cohorts
-                    reader.Close();
-                    return employees;
 
+                    
                 }
+                    reader.Close();
+                return employees; 
+                // GET: Departments List
+            }
+        }
+            private List<Department> GetDepartments()
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"SELECT Id, Name, Budget 
+                                       FROM Departments";
+
+                        var reader = cmd.ExecuteReader();
+
+                        var departments = new List<Department>();
+
+                        while (reader.Read())
+                        {
+                            departments.Add(new Department
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
+
+                            });
+                        }
+
+                        reader.Close();
+
+                        return departments;
+                    }
+                }
+            }
         }
     }
-}
