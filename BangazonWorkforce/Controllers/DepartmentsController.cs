@@ -71,13 +71,18 @@ namespace BangazonWorkforce.Controllers
 
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id,
-                                        Name,
-                                        Budget
-                                        FROM Department
+                    cmd.CommandText = @"SELECT d.Id,
+                                        d.Name,
+                                        d.Budget,
+                                        e.FirstName,
+                                        e.LastName
+                                        FROM Department d
+                                        LEFT JOIN Employee e ON d.Id = e.Id
                                         WHERE Id = @id";
 
                     cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    var departments = new List<Department>();
 
                     var reader = cmd.ExecuteReader();
 
@@ -87,7 +92,12 @@ namespace BangazonWorkforce.Controllers
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
-                            Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
+                            Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                            Employee = new Employee
+                            {
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                            }
                         };
 
                         reader.Close();
