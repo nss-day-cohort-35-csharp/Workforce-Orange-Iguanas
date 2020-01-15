@@ -114,7 +114,7 @@ namespace BangazonWorkforce.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     // step 2. create the query
-                    cmd.CommandText = @"SELECT * FROM Employee
+                    cmd.CommandText = @"SELECT Id, Firstname, LastName, DepartmentId FROM Employee
                                                 ";
 
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -131,7 +131,7 @@ namespace BangazonWorkforce.Controllers
                             FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                             LastName = reader.GetString(reader.GetOrdinal("LastName")),
                             DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                            isSupervisor = reader.GetBoolean(reader.GetOrdinal("isSupervisor")),
+                       
 
 
                         };
