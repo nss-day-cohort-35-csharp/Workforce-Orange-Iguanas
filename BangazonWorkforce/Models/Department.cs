@@ -16,8 +16,6 @@ namespace BangazonWorkforce.Models
         [Required]
         public int Budget { get; set; }
 
-        public Employee Employee { get; set; }
-
         public List<Employee> Employees { get; set; }
 
     }

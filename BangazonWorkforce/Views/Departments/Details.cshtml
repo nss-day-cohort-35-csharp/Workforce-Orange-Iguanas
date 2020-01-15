@@ -31,25 +31,24 @@
         </dd>
     </dl>
 </div>
-
+*
 <h4>Employees</h4>
 <table class="table">
     <thead>
-        <tr>
+        
             <th>@Html.DisplayNameFor(model => model.Employees[0].Id)</th>
-        </tr>
-        <tr>
+        
             <th>@Html.DisplayNameFor(model => model.Employees[0].FirstName)</th>
-        </tr>
-        <tr>
+        
             <th>@Html.DisplayNameFor(model => model.Employees[0].LastName)</th>
-        </tr>
+        
     </thead>
 
     <tbody>
         @foreach(var item in Model.Employees)
         {
         <tr>
+
             <td>@Html.DisplayFor(modelItem => item.Id)</td>
             <td>@Html.DisplayFor(modelItem => item.FirstName)</td>
             <td>@Html.DisplayFor(modelItem => item.LastName)</td>

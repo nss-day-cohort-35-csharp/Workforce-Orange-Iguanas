@@ -73,12 +73,8 @@ namespace BangazonWorkforce.Controllers
                 {
                     cmd.CommandText = @"SELECT d.Id AS DepartmentId,
                                         d.[Name],
-                                        d.Budget,
-                                        e.Id  AS EmployeeId,
-                                        e.FirstName,
-                                        e.LastName
+                                        d.Budget
                                         FROM Department d
-                                        LEFT JOIN Employee e ON d.Id = e.DepartmentId
                                         WHERE d.Id = @id";
 
                     cmd.Parameters.Add(new SqlParameter("@id", id));
@@ -86,6 +82,7 @@ namespace BangazonWorkforce.Controllers
                     var reader = cmd.ExecuteReader();
 
                     var departments = new List<Department>();
+                    var employees = new List<Employee>();
 
                     if (reader.Read())
                     {
@@ -94,12 +91,7 @@ namespace BangazonWorkforce.Controllers
                             Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
-                            Employee = new Employee
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                                LastName = reader.GetString(reader.GetOrdinal("LastName"))
-                            }
+                            Employees = GetEmployees(id)
                         };
 
                         reader.Close();
@@ -232,6 +224,41 @@ namespace BangazonWorkforce.Controllers
                     }
                     reader.Close();
                     return departments;
+                }
+            }
+        }
+
+        private List<Employee> GetEmployees(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT 
+                                        e.Id  AS EmployeeId,
+                                        e.FirstName,
+                                        e.LastName
+                                        FROM Employee e
+                                        WHERE e.DepartmentId = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+
+                    var reader = cmd.ExecuteReader();
+
+                    var employees = new List<Employee>();
+
+                    while (reader.Read())
+                    {
+                        employees.Add(new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                        });
+                    }
+                    reader.Close();
+                    return employees;
                 }
             }
         }
