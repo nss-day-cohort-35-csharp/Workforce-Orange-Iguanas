@@ -80,7 +80,8 @@ namespace BangazonWorkforce.Controllers
             string sql = @"SELECT t.Id,
                     t.[Name],
                     t.StartDate,
-                    t.EndDate
+                    t.EndDate, 
+                    t.MaxAttendees
                     FROM TrainingProgram t
                     WHERE Id = @Id";
 
@@ -104,7 +105,7 @@ namespace BangazonWorkforce.Controllers
                             StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
                             EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
                             MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
-                            
+                            Attendees = GetAllEmployees(id)
                         };
                     }
 
@@ -157,19 +158,69 @@ namespace BangazonWorkforce.Controllers
         // GET: TrainingPrograms/Edit/5
         public ActionResult Edit(int id)
         {
-            return View();
+            string sql = @"SELECT t.Id,
+                    t.[Name],
+                    t.StartDate,
+                    t.EndDate, 
+                    t.MaxAttendees
+                    FROM TrainingProgram t
+                    WHERE Id = @Id";
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram program = new TrainingProgram();
+                    if (reader.Read())
+                    {
+                        program = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+                    }
+
+                    reader.Close();
+
+                    return View(program);
+                }
+            }
         }
 
         // POST: TrainingPrograms/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<ActionResult> Edit(int id, TrainingProgram model)
         {
             try
             {
-                // TODO: Add update logic here
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE TrainingProgram
+                                            SET [Name] = @name, StartDate = @start, EndDate = @end, MaxAttendees = @max
+                                            WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@name", model.Name));
+                        cmd.Parameters.Add(new SqlParameter("@id", model.Id));
+                        cmd.Parameters.Add(new SqlParameter("@start", model.StartDate));
+                        cmd.Parameters.Add(new SqlParameter("@end", model.EndDate));
+                        cmd.Parameters.Add(new SqlParameter("@max", model.MaxAttendees));
+                        await cmd.ExecuteNonQueryAsync();
 
-                return RedirectToAction(nameof(Index));
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
             }
             catch
             {
@@ -186,14 +237,13 @@ namespace BangazonWorkforce.Controllers
         // POST: TrainingPrograms/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete (int id, IFormCollection collection)
         {
             try
             {
-                // TODO: Add delete logic here
-
                 return RedirectToAction(nameof(Index));
             }
+
             catch
             {
                 return View();
@@ -204,32 +254,37 @@ namespace BangazonWorkforce.Controllers
 
         private List<Employee> GetAllEmployees(int id)
         {
+            string sql = "SELECT e.Id, e.FirstName, e.LastName, e.Email " +
+                         "FROM Employee e " +
+                         "LEFT JOIN EmployeeTraining as et ON et.EmployeeId = e.Id " +
+                         "WHERE et.TrainingProgramId = @trainingid";
+
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT Id, FirstName, LastName,  " +
-                                      "FROM students WHERE cohort_id = @cohortid";
-                    cmd.Parameters.Add(new SqlParameter("@cohortid", id));
+                    cmd.CommandText = sql;
+
+                    cmd.Parameters.Add(new SqlParameter("@trainingid", id));
 
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    List<Student> students = new List<Student>();
+                    List<Employee> employees = new List<Employee>();
                     while (reader.Read())
                     {
-                        students.Add(new Student
+                        employees.Add(new Employee
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("id")),
-                            FirstName = reader.GetString(reader.GetOrdinal("first_name")),
-                            LastName = reader.GetString(reader.GetOrdinal("last_name")),
-                            SlackHandle = reader.GetString(reader.GetOrdinal("slack_handle"))
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            Email = reader.GetString(reader.GetOrdinal("Email"))
                         });
                     }
 
                     reader.Close();
 
-                    return students;
+                    return employees;
                 }
             }
         }
