@@ -71,30 +71,32 @@ namespace BangazonWorkforce.Controllers
 
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT d.Id,
-                                        d.Name,
+                    cmd.CommandText = @"SELECT d.Id AS DepartmentId,
+                                        d.[Name],
                                         d.Budget,
+                                        e.Id  AS EmployeeId,
                                         e.FirstName,
                                         e.LastName
                                         FROM Department d
-                                        LEFT JOIN Employee e ON d.Id = e.Id
-                                        WHERE Id = @id";
+                                        LEFT JOIN Employee e ON d.Id = e.DepartmentId
+                                        WHERE d.Id = @id";
 
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                    var departments = new List<Department>();
-
                     var reader = cmd.ExecuteReader();
+
+                    var departments = new List<Department>();
 
                     if (reader.Read())
                     {
                         var department = new Department
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
                             Name = reader.GetString(reader.GetOrdinal("Name")),
                             Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
                             Employee = new Employee
                             {
+                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
                                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                 LastName = reader.GetString(reader.GetOrdinal("LastName"))
                             }
