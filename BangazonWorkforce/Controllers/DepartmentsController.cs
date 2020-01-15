@@ -39,10 +39,16 @@ namespace BangazonWorkforce.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id,
-                                        Name,
-                                        Budget
-                                        FROM Department";
+                    cmd.CommandText = @"SELECT d.[Name],
+                                        d.Id AS DeptId,
+                                        d.Budget,
+                                        COUNT (e.DepartmentId) AS EmployeeCount
+                                        FROM Department d
+                                        LEFT JOIN Employee e ON e.DepartmentId = d.Id
+                                        GROUP BY d.[Name],
+                                        d.Budget,
+                                        d.Id
+                                        ORDER BY EmployeeCount";
 
                     var reader = cmd.ExecuteReader();
                     var departments = new List<Department>();
@@ -51,9 +57,10 @@ namespace BangazonWorkforce.Controllers
                     {
                         departments.Add(new Department
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Id = reader.GetInt32(reader.GetOrdinal("DeptId")),
                             Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
-                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            EmployeeCount = reader.GetInt32(reader.GetOrdinal("EmployeeCount"))
                         });
                     }
                     reader.Close();
@@ -236,6 +243,41 @@ namespace BangazonWorkforce.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT 
+                                        e.Id  AS EmployeeId,
+                                        e.FirstName,
+                                        e.LastName
+                                        FROM Employee e
+                                        WHERE e.DepartmentId = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+
+                    var reader = cmd.ExecuteReader();
+
+                    var employees = new List<Employee>();
+
+                    while (reader.Read())
+                    {
+                        employees.Add(new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                        });
+                    }
+                    reader.Close();
+                    return employees;
+                }
+            }
+        }
+
+        private List<Employee> GetEmployeeCount(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"COUNT 
                                         e.Id  AS EmployeeId,
                                         e.FirstName,
                                         e.LastName
