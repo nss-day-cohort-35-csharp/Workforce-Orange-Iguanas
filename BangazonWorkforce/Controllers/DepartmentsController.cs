@@ -1,18 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BangazonWorkforce.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforce.Controllers
 {
     public class DepartmentsController : Controller
     {
+
+        private readonly IConfiguration _config;
+
+        public DepartmentsController(IConfiguration config)
+        {
+            _config = config;
+        }
+
+        public SqlConnection Connection
+        {
+            get
+            {
+                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            }
+        }
+
         // GET: Departments
         public ActionResult Index()
         {
-            return View();
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id,
+                                        Name,
+                                        Budget
+                                        FROM Department";
+
+                    var reader = cmd.ExecuteReader();
+                    var departments = new List<Department>();
+
+                    while (reader.Read())
+                    {
+                        departments.Add(new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Budget = reader.GetInt32(reader.GetOrdinal("Budget")),
+                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                        });
+                    }
+                    reader.Close();
+                    return View(departments);
+                }
+            }
         }
 
         // GET: Departments/Details/5
