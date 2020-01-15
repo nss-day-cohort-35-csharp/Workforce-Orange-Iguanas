@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforce.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using BangazonWorkforce.Models.ViewModel;
+
 
 namespace BangazonWorkforce.Controllers
 {
@@ -28,7 +30,9 @@ namespace BangazonWorkforce.Controllers
         // GET: Employees
         public ActionResult Index()
         {
-            return View();
+            var employees = GetAllEmployees();
+            return View(employees);
+
         }
 
         // GET: Employees/Details/5
@@ -45,12 +49,15 @@ namespace BangazonWorkforce.Controllers
                 Text = d.Name,
                 Value = d.Id.ToString()
             }).ToList();
+
             var computers = GetComputers().Select(c => new SelectListItem
             {
                 Text = c.Make,
                 Value = c.Id.ToString()
             }).ToList();
             return View();
+
+
         }
 
         // POST: Employees/Create
@@ -115,6 +122,7 @@ namespace BangazonWorkforce.Controllers
                 return View();
             }
         }
+
         private List<Department> GetDepartments()
         {
             using (SqlConnection conn = Connection)
@@ -135,7 +143,7 @@ namespace BangazonWorkforce.Controllers
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             Name = reader.GetString(reader.GetOrdinal("Name"))
-                            
+
                         });
                     }
 
@@ -180,5 +188,92 @@ namespace BangazonWorkforce.Controllers
         }
 
 
+
+
+        private List<Employee> GetAllEmployees()
+        {
+            // step 1 open the connection
+            using (SqlConnection conn = Connection) {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    // step 2. create the query
+                    cmd.CommandText = @"Select e.Id, e.FirstName, e.LastName,  d.[Name] As Department FROM Employee e 
+
+                                    Left Join Department d ON e.DepartmentId = d.Id";
+
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    // create a collection to keep the list of cohorts
+                    List<Employee> employees = new List<Employee>();
+
+                    // run the query and hold the results in an object
+                    while (reader.Read())
+                    {
+                        Employee employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            Department = new Department
+                            {
+
+                                Name = reader.GetString(reader.GetOrdinal("Department"))
+
+                            }
+
+
+
+                        };
+                        employees.Add(employee);
+
+                        //add to the list of cohorts 
+
+
+
+                        //close the connection and return the list of cohorts
+
+
+                    }
+                    reader.Close();
+                    return employees;
+                    // GET: Departments List
+                }
+            }
+            
+        }
+        //private List<Department> GetDepartments()
+        //{
+        //    using (SqlConnection conn = Connection)
+        //    {
+        //        conn.Open();
+        //        using (SqlCommand cmd = conn.CreateCommand())
+        //        {
+        //            cmd.CommandText = @"SELECT Id, Name, Budget 
+        //                               FROM Departments";
+
+        //            var reader = cmd.ExecuteReader();
+
+        //            var departments = new List<Department>();
+
+        //            while (reader.Read())
+        //            {
+        //                departments.Add(new Department
+        //                {
+        //                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+        //                    Name = reader.GetString(reader.GetOrdinal("Name")),
+        //                    Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
+
+        //                });
+        //            }
+
+        //            reader.Close();
+
+        //            return departments;
+        //        }
+        //    }
+        //}
     }
+
 }
