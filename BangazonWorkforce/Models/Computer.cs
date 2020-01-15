@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 
 namespace BangazonWorkforce.Models
 {
-    public class _
+    public class Computer
     {
+
     }
 }

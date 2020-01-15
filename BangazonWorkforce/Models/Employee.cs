@@ -14,6 +14,7 @@ namespace BangazonWorkforce.Models
         public string Email { get; set; }
         public bool isSupervisor { get; set; }
         public int ComputerId { get; set; }
+        public int MyProperty { get; set; }
 
 
 

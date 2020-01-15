@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +13,7 @@ namespace BangazonWorkforce.Controllers
         // GET: Employees
         public ActionResult Index()
         {
+
             return View();
         }
 
@@ -87,6 +89,44 @@ namespace BangazonWorkforce.Controllers
             catch
             {
                 return View();
+            }
+            private List<Employee> GetAllEmployees()
+            {
+                // step 1 open the connection
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        // step 2. create the query
+                        cmd.CommandText = @"SELECT Id,
+                                                CohortName
+                                        FROM Cohort;";
+
+                        SqlDataReader reader = cmd.ExecuteReader();
+
+                        // create a collection to keep the list of cohorts
+                        List<Cohort> cohorts = new List<Cohort>();
+
+                        // run the query and hold the results in an object
+                        while (reader.Read())
+                        {
+                            Cohort cohort = new Cohort
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                CohortName = reader.GetString(reader.GetOrdinal("CohortName"))
+                            };
+
+                            //add to the list of cohorts 
+                            cohorts.Add(cohort);
+                        }
+
+                        //close the connection and return the list of cohorts
+                        reader.Close();
+                        return cohorts;
+
+                    }
+                }
             }
         }
     }
