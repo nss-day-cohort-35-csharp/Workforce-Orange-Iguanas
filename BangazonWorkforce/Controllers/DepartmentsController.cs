@@ -4,8 +4,10 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforce.Models;
+using BangazonWorkforce.Models.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforce.Controllers
@@ -14,6 +16,7 @@ namespace BangazonWorkforce.Controllers
     {
 
         private readonly IConfiguration _config;
+        private readonly List<SelectListItem> departments;
 
         public DepartmentsController(IConfiguration config)
         {
@@ -100,17 +103,41 @@ namespace BangazonWorkforce.Controllers
         // GET: Departments/Create
         public ActionResult Create()
         {
-            return View();
+            var cohorts = GetDepartments().Select(d => new SelectListItem
+            {
+                Text = d.Name,
+                Value = d.Id.ToString()
+            }).ToList();
+
+            var viewModel = new DepartmentViewModel
+            {
+                Departments = departments
+            };
+
+            return View(viewModel);
         }
 
         // POST: Departments/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Department department)
         {
             try
             {
-                // TODO: Add insert logic here
+
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO Department (Name, Budget)
+                                                VALUES (@name, @budget)";
+                        cmd.Parameters.Add(new SqlParameter("@name", department.Name));
+                        cmd.Parameters.Add(new SqlParameter("@budget", department.Budget));
+                        
+                        cmd.ExecuteNonQuery();
+                    }
+                }
 
                 return RedirectToAction(nameof(Index));
             }
@@ -163,6 +190,37 @@ namespace BangazonWorkforce.Controllers
             catch
             {
                 return View();
+            }
+        }
+
+        private List<Department> GetDepartments()
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id, 
+                                        Name,
+                                        Budget
+                                        FROM Department";
+
+                    var reader = cmd.ExecuteReader();
+
+                    var departments = new List<Department>();
+
+                    while (reader.Read())
+                    {
+                        departments.Add(new Department
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
+                        });
+                    }
+                    reader.Close();
+                    return departments;
+                }
             }
         }
     }
