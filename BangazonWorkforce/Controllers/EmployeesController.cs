@@ -1,19 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BangazonWorkforce.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforce.Controllers
 {
     public class EmployeesController : Controller
     {
+        private readonly IConfiguration _config;
+        public EmployeesController(IConfiguration config)
+        {
+            _config = config;
+        }
+        public SqlConnection Connection
+        {
+            get
+            {
+                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            }
+        }
         // GET: Employees
         public ActionResult Index()
         {
-
+            List<Employee> employees = GetAllEmployees();
+            return View(employees);
             return View();
         }
 
@@ -90,44 +105,46 @@ namespace BangazonWorkforce.Controllers
             {
                 return View();
             }
+            }
             private List<Employee> GetAllEmployees()
             {
                 // step 1 open the connection
-                using (SqlConnection conn = Connection)
+                using SqlConnection conn = Connection;
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
-                    {
-                        // step 2. create the query
-                        cmd.CommandText = @"SELECT Id,
-                                                CohortName
-                                        FROM Cohort;";
+                    // step 2. create the query
+                    cmd.CommandText = @"SELECT * FROM Employee
+                                                ";
 
-                        SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = cmd.ExecuteReader();
 
-                        // create a collection to keep the list of cohorts
-                        List<Cohort> cohorts = new List<Cohort>();
+                    // create a collection to keep the list of cohorts
+                    List<Employee> employees = new List<Employee>();
 
-                        // run the query and hold the results in an object
-                        while (reader.Read())
+                    // run the query and hold the results in an object
+                    while (reader.Read())
+                    {   
+                        Employee employee = new Employee
                         {
-                            Cohort cohort = new Cohort
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                CohortName = reader.GetString(reader.GetOrdinal("CohortName"))
-                            };
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                            isSupervisor = reader.GetBoolean(reader.GetOrdinal("isSupervisor")),
 
-                            //add to the list of cohorts 
-                            cohorts.Add(cohort);
-                        }
 
-                        //close the connection and return the list of cohorts
-                        reader.Close();
-                        return cohorts;
+                        };
 
+                        //add to the list of cohorts 
+                        employees.Add(employee);
                     }
+
+                    //close the connection and return the list of cohorts
+                    reader.Close();
+                    return employees;
+
                 }
-            }
         }
     }
 }
