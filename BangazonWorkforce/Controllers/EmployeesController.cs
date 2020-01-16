@@ -50,12 +50,18 @@ namespace BangazonWorkforce.Controllers
                 Value = d.Id.ToString()
             }).ToList();
 
-            var computers = GetComputers().Select(c => new SelectListItem
+            var computers = GetUnAssignedComputers().Select(c => new SelectListItem
             {
-                Text = c.Make,
+                Text = c.Make + " " + c.Model,
                 Value = c.Id.ToString()
             }).ToList();
-            return View();
+            var viewModel = new EmployeeViewModel()
+            {
+                Employee = new Employee(),
+                Departments = departments,
+                Computers = computers
+            };
+            return View(viewModel);
 
 
         }
@@ -63,17 +69,36 @@ namespace BangazonWorkforce.Controllers
         // POST: Employees/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(Employee employee)
         {
-            try
             {
-                // TODO: Add insert logic here
+                try
+                {
+                    using (SqlConnection conn = Connection)
+                    {
+                        conn.Open();
+                        using (SqlCommand cmd = conn.CreateCommand())
+                        {
+                            cmd.CommandText = @"INSERT INTO Employee (FirstName, LastName, Email, IsSupervisor, DepartmentId, ComputerId)
+                                            VALUES (@FirstName, @LastName, @Email, @IsSupervisor,@DepartmentId,@ComputerId )";
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
+                            cmd.Parameters.Add(new SqlParameter("@FirstName", employee.FirstName));
+                            cmd.Parameters.Add(new SqlParameter("@LastName", employee.LastName));
+                            cmd.Parameters.Add(new SqlParameter("@Email", employee.Email));
+                            cmd.Parameters.Add(new SqlParameter("@IsSupervisor", employee.IsSupervisor));
+                            cmd.Parameters.Add(new SqlParameter("@DepartmentId", employee.DepartmentId));
+                            cmd.Parameters.Add(new SqlParameter("@ComputerId", employee.ComputerId));
+
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    return View();
+                }
             }
         }
 
@@ -154,15 +179,16 @@ namespace BangazonWorkforce.Controllers
             }
         }
 
-        private List<Computer> GetComputers()
+        private List<Computer> GetUnAssignedComputers()
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, PurchaseDate, Make, Model
-                                       FROM Computer";
+                    cmd.CommandText = @"SELECT c.Id, c.PurchaseDate, c.Make, c.Model FROM Computer c 
+                                        LEFT JOIN Employee e ON c.Id = e.ComputerId
+                                        WHERE e.Id IS NULL";
 
                     var reader = cmd.ExecuteReader();
 

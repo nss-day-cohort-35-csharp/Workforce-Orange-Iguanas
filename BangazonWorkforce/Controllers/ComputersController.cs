@@ -123,6 +123,7 @@ namespace BangazonWorkforce.Controllers
                             };
 
                             reader.Close();
+                            ViewBag.Employee = GetEmployeeByComputerId(id);
                             return View(computer);
                         }
                         return NotFound();
@@ -157,6 +158,35 @@ namespace BangazonWorkforce.Controllers
             catch
             {
                 return View();
+            }
+        }
+
+        private Employee GetEmployeeByComputerId(int computerId)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id, FirstName, LastName FROM Employee
+                                        WHERE ComputerId = @ComputerId ";
+                    
+                    cmd.Parameters.AddWithValue("@ComputerId", computerId);
+                    var reader = cmd.ExecuteReader();
+                    Employee employee = null;
+                    while (reader.Read())
+                    {
+                       employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+
+                        };
+                    }
+                    reader.Close();
+                    return employee;
+                }
             }
         }
     }
