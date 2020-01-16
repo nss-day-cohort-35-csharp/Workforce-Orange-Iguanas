@@ -156,7 +156,7 @@ namespace BangazonWorkforce.Controllers
         }
 
         // GET: TrainingPrograms/Edit/5
-        public ActionResult Edit(int id)
+        public async Task<ActionResult> Edit(int id)
         {
             string sql = @"SELECT t.Id,
                     t.[Name],
@@ -174,7 +174,7 @@ namespace BangazonWorkforce.Controllers
                     cmd.CommandText = sql;
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
 
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
                     TrainingProgram program = new TrainingProgram();
                     if (reader.Read())
@@ -203,14 +203,15 @@ namespace BangazonWorkforce.Controllers
         {
             try
             {
+                string sql = @"UPDATE TrainingProgram
+                               SET [Name] = @name, StartDate = @start, EndDate = @end, MaxAttendees = @max
+                               WHERE Id = @id";
                 using (SqlConnection conn = Connection)
                 {
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"UPDATE TrainingProgram
-                                            SET [Name] = @name, StartDate = @start, EndDate = @end, MaxAttendees = @max
-                                            WHERE Id = @id";
+                        cmd.CommandText = sql;
                         cmd.Parameters.Add(new SqlParameter("@name", model.Name));
                         cmd.Parameters.Add(new SqlParameter("@id", model.Id));
                         cmd.Parameters.Add(new SqlParameter("@start", model.StartDate));
@@ -229,18 +230,72 @@ namespace BangazonWorkforce.Controllers
         }
 
         // GET: TrainingPrograms/Delete/5
-        public ActionResult Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
-            return View();
+
+            string sql = @"
+                    SELECT t.Id,
+                    t.[Name],
+                    t.StartDate,
+                    t.EndDate,
+                    t.MaxAttendees
+                    FROM TrainingProgram t
+                    WHERE t.Id = @Id";
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                    if (reader.Read())
+                    {
+                        TrainingProgram program = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+
+                        reader.Close();
+
+                        return View(program);
+                    }
+                    else
+                    {
+                        return NoContent();
+                    }
+                }
+            }
         }
 
         // POST: TrainingPrograms/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete (int id, IFormCollection collection)
+        public async Task<ActionResult> Delete (int id, TrainingProgram model)
         {
             try
             {
+                //Reassign Employees
+                await ReassignEmployees(id);
+
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE FROM TrainingProgram WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        await cmd.ExecuteNonQueryAsync();
+                    }
+                }
+
                 return RedirectToAction(nameof(Index));
             }
 
@@ -254,7 +309,7 @@ namespace BangazonWorkforce.Controllers
 
         private List<Employee> GetAllEmployees(int id)
         {
-            string sql = "SELECT e.Id, e.FirstName, e.LastName, e.Email " +
+            string sql = @"SELECT e.Id, e.FirstName, e.LastName, e.Email " +
                          "FROM Employee e " +
                          "LEFT JOIN EmployeeTraining as et ON et.EmployeeId = e.Id " +
                          "WHERE et.TrainingProgramId = @trainingid";
@@ -285,6 +340,24 @@ namespace BangazonWorkforce.Controllers
                     reader.Close();
 
                     return employees;
+                }
+            }
+        }
+
+        private async Task<int> ReassignEmployees(int id)
+        {
+            string sql = @"DELETE FROM EmployeeTraining WHERE TrainingProgramId = @id";
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    return await cmd.ExecuteNonQueryAsync();
                 }
             }
         }
