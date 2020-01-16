@@ -36,7 +36,40 @@ namespace BangazonWorkforce.Controllers
 
         // GET: Employees/Details/5
         public ActionResult Details(int id)
+
         {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT e.Id, e.FirstName, e.LastName, d.Id AS DepartmentId, d.[Name] AS DepartmentName 
+                                        FROM Employees e JOIN Departments d ON e.DepartmentId = d.Id
+                                        WHERE e.Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    var reader = cmd.ExecuteReader();
+
+                    if (reader.Read())
+                    {
+                        var employee = new Employee
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            Department = new Department
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
+                            }
+                        };
+                        reader.Close();
+                        return View(employee);
+                    }
+                    reader.Close();
+                    return NotFound();
+
+                }
+            }
             return View();
         }
 
