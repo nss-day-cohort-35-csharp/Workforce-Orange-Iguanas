@@ -10,6 +10,7 @@ namespace BangazonWorkforce.Models
     {
 
         public int Id { get; set; }
+        [Required]
         [Display(Name = "Purchase Date")]
         public DateTime PurchaseDate { get; set; }
         [Display(Name="Manufacturer")]
