@@ -8,6 +8,7 @@ label {
 
 input {
     font-family: 'Roboto', sans-serif;
+    background-color:rgb(232, 245, 247);
 }
 
 span {
@@ -26,9 +27,9 @@ row {
     font-family: 'Gelasio', serif;
 }
 
-table {
+.table.table {
     font-family: 'Roboto', sans-serif;
-    border: 2px double rgb(83, 151, 160) !important;
+    border: 6px double rgb(83, 151, 160);
 }
 
 td {
@@ -41,4 +42,10 @@ tr, thread, th{
     border:none !important;
     border-left:none !important;
     border-right:none !important;
+}
+
+.button-group{
+    display:flex;
+    justify-content:space-between;
+    align-content:center;
 }
