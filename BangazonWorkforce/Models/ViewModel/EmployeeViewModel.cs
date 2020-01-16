@@ -10,5 +10,6 @@ namespace BangazonWorkforce.Models.ViewModel
     {
         public Employee Employee { get; set; }
         public List<SelectListItem> Departments { get; set; }
+        public List<SelectListItem> Computers { get; set; }
     }
 }
