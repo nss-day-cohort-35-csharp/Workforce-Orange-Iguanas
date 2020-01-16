@@ -387,7 +387,6 @@ namespace BangazonWorkforce.Controllers
             }
         }
 
-        
 
 
         private List<Employee> GetAllEmployees()
