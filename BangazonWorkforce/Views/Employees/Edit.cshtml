@@ -1,4 +1,4 @@
-﻿@model BangazonWorkforce.Models.Employee
+﻿@model BangazonWorkforce.Models.ViewModel.EmployeeViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -13,39 +13,39 @@
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <label asp-for="Id" class="control-label"></label>
-                <input asp-for="Id" class="form-control" />
-                <span asp-validation-for="Id" class="text-danger"></span>
+          
+                <input asp-for="Employee.Id" class="form-control" type="hidden" />
+              
             </div>
             <div class="form-group">
-                <label asp-for="FirstName" class="control-label"></label>
-                <input asp-for="FirstName" class="form-control" />
-                <span asp-validation-for="FirstName" class="text-danger"></span>
+                <label asp-for="Employee.FirstName" class="control-label"></label>
+                <input asp-for="Employee.FirstName" class="form-control" readonly />
+                <span asp-validation-for="Employee.FirstName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="LastName" class="control-label"></label>
-                <input asp-for="LastName" class="form-control" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
+                <label asp-for="Employee.LastName" class="control-label"></label>
+                <input asp-for="Employee.LastName" class="form-control disabled"  />
+                <span asp-validation-for="Employee.LastName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="DepartmentId" class="control-label"></label>
-                <input asp-for="DepartmentId" class="form-control" />
-                <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                <label asp-for="Employee.DepartmentId" class="control-label"></label>
+                <select asp-for="Employee.DepartmentId" asp-items="@Model.Departments" class="form-control" > </select>
+ 
             </div>
             <div class="form-group">
-                <label asp-for="Email" class="control-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <label asp-for="Employee.Email" class="control-label"></label>
+                <input asp-for="Employee.Email" class="form-control" />
+                <span asp-validation-for="Employee.Email" class="text-danger"></span>
             </div>
             <div class="form-group form-check">
                 <label class="form-check-label">
-                    <input class="form-check-input" asp-for="isSupervisor" /> @Html.DisplayNameFor(model => model.isSupervisor)
+                    <input class="form-check-input" asp-for="Employee.isSupervisor" /> @Html.DisplayNameFor(model => model.Employee.isSupervisor)
                 </label>
             </div>
             <div class="form-group">
-                <label asp-for="ComputerId" class="control-label"></label>
-                <input asp-for="ComputerId" class="form-control" />
-                <span asp-validation-for="ComputerId" class="text-danger"></span>
+                <label asp-for="Employee.ComputerId" class="control-label"></label>
+                <select asp-for="Employee.ComputerId" asp-items="@Model.Computers" class="form-control"> </select>
+             
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
