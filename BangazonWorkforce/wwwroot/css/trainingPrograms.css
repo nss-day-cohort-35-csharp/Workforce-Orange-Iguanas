@@ -1,0 +1,44 @@
+﻿.customBackground {
+    background-image: linear-gradient(rgb(171, 216, 222), rgb(232, 245, 247));
+}
+
+label {
+    font-family: 'Gelasio', serif;
+}
+
+input {
+    font-family: 'Roboto', sans-serif;
+}
+
+span {
+    font-family: 'Roboto', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Gelasio', serif;
+}
+
+a {
+    font-family: 'Roboto', sans-serif;
+}
+
+row {
+    font-family: 'Gelasio', serif;
+}
+
+table {
+    font-family: 'Roboto', sans-serif;
+    border: 2px double rgb(83, 151, 160) !important;
+}
+
+td {
+    border: 1px solid rgb(83, 151, 160);
+    border-bottom: 2px solid rgb(83, 151, 160) !important;
+    border-top: 2px solid rgb(83, 151, 160) !important;
+}
+
+tr, thread, th{
+    border:none !important;
+    border-left:none !important;
+    border-right:none !important;
+}

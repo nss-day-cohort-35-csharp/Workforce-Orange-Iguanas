@@ -4,78 +4,82 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+    <body class="customBackground">
 
-<div>
-    <hr />
-    <h4>@Model.Name</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.StartDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.StartDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.EndDate)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.EndDate)
-        </dd>
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.MaxAttendees)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.MaxAttendees)
-        </dd>
-    </dl>
-</div>
+        <h1>Details</h1>
 
-@if (Model.Attendees.Count != 0)
-{
-<h4>Employees</h4>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Attendees[0].FirstName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Attendees[0].LastName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Attendees[0].Email)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
+        <div>
+            <hr />
+            <h4>@Model.Name</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.StartDate)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.StartDate)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.EndDate)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.EndDate)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.MaxAttendees)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.MaxAttendees)
+                </dd>
+            </dl>
+        </div>
 
-    <tbody>
-        @foreach (var item in Model.Attendees)
+        @if (Model.Attendees.Count != 0)
         {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.FirstName)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.LastName)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Email)
-                </td>
-            </tr>
+            <h4>Employees</h4>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Attendees[0].FirstName)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Attendees[0].LastName)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Attendees[0].Email)
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var item in Model.Attendees)
+                    {
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.FirstName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.LastName)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Email)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         }
-    </tbody>
-</table>
-}
 
-else { 
-    <h6>No Employees are attending this class.</h6>
-}
+        else
+        {
+            <h6>No Employees are attending this class.</h6>
+        }
 
 
-<div>
-    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
-    <a asp-action="Index">Back to List</a>
-</div>
+        <div>
+            @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+            <a asp-action="Index">Back to List</a>
+        </div>
+
+    </body>
