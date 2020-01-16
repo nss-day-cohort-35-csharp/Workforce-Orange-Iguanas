@@ -9,12 +9,19 @@
 <p>
     <a asp-action="Create">Create New</a>
 </p>
-<form asp-controller="Computers" asp-action="Index">
-    <p>
-        <input type="text" name="SearchString">
-        <input type="submit" value="Search" />
-    </p>
-</form>
+<div class="card alert alert-primary">
+    <div class="card-body">
+        <form asp-controller="Computers" asp-action="Index">
+           
+                <div class="col"><input type="text" name="SearchString" class="form-control" placeholder="Search.."></div>
+                @*<div class="col-auto input-group-append"><button type="submit" value="Search">Search</button></div>*@
+            
+        </form>
+
+    </div>
+      
+</div>
+
 <table class="table">
     <thead>
         <tr>
@@ -33,7 +40,7 @@
             <th></th>
         </tr>
     </thead>
-    
+
     <tbody>
 
         @foreach (var item in Model)
