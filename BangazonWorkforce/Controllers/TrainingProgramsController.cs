@@ -239,7 +239,7 @@ namespace BangazonWorkforce.Controllers
                     t.StartDate,
                     t.EndDate,
                     t.MaxAttendees
-                    FROM TrainingProgram
+                    FROM TrainingProgram t
                     WHERE t.Id = @Id";
 
             using (SqlConnection conn = Connection)
@@ -282,6 +282,7 @@ namespace BangazonWorkforce.Controllers
             try
             {
                 //Reassign Employees
+                await ReassignEmployees(id);
 
                 using (SqlConnection conn = Connection)
                 {
@@ -343,7 +344,7 @@ namespace BangazonWorkforce.Controllers
             }
         }
 
-        private async Task<int> ReassignEmployee(int id)
+        private async Task<int> ReassignEmployees(int id)
         {
             string sql = @"DELETE FROM EmployeeTraining WHERE TrainingProgramId = @id";
 
@@ -358,6 +359,7 @@ namespace BangazonWorkforce.Controllers
 
                     return await cmd.ExecuteNonQueryAsync();
                 }
-            }  
+            }
+        }
     }
 }

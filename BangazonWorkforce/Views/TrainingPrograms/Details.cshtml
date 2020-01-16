@@ -11,12 +11,6 @@
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Id)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Id)
-        </dd>
-        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Name)
         </dt>
         <dd class="col-sm-10">
@@ -50,9 +44,6 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Attendees[0].Id)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Attendees[0].FirstName)
             </th>
             <th>
@@ -69,9 +60,6 @@
         @foreach (var item in Model.Attendees)
         {
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Id)
-                </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.FirstName)
                 </td>
