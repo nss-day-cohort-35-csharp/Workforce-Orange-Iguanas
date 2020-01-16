@@ -19,5 +19,7 @@ namespace BangazonWorkforce.Models
         public int EmployeeCount { get; set; }
 
         public Employee Employee { get; set; }
+
+        
     }
 }

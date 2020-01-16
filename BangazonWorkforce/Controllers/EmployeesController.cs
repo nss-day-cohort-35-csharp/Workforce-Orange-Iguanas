@@ -1,15 +1,16 @@
-﻿using System;
+﻿using System.Xml.Schema;
+using System.Net.Http.Headers;
+using System;
 using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using BangazonWorkforce.Models;
+using BangazonWorkforce.Models.ViewModel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using BangazonWorkforce.Models.ViewModel;
-
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace BangazonWorkforce.Controllers
 {
@@ -39,31 +40,42 @@ namespace BangazonWorkforce.Controllers
         public ActionResult Details(int id)
 
         {
-            using (SqlConnection conn = Connection)
+            using(SqlConnection conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using(SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT e.Id, e.FirstName, e.LastName, d.Id AS DepartmentId, d.[Name] AS DepartmentName 
-                                        FROM Employees e JOIN Departments d ON e.DepartmentId = d.Id
+                    cmd.CommandText = @"SELECT e.Id, e.FirstName, e.LastName, e.IsSupervisor, e.Email, c.Make, c.Model, d.[Name] AS DepartmentName 
+                                        FROM Employee e JOIN Department d ON e.DepartmentId = d.Id Join Computer c ON e.ComputerId = c.Id
                                         WHERE e.Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     var reader = cmd.ExecuteReader();
-
-                    if (reader.Read())
-                    {
-                        var employee = new Employee
+                    Employee employee = null;
+                     while(reader.Read())
+                    {    
+                        if(employee == null ){
+                        employee = new Employee
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                             LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            Email = reader.GetString(reader.GetOrdinal("Email")),
+                            IsSupervisor = reader.GetBoolean(reader.GetOrdinal("isSupervisor")),
+
                             Department = new Department
+                            
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                                Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
-                            }
+                            Name = reader.GetString(reader.GetOrdinal("DepartmentName"))
+                            },
+                            Computer = new Computer {
+                               Make = reader.GetString(reader.GetOrdinal("Make")),
+                               Model = reader.GetString(reader.GetOrdinal("Model")) 
+                            } 
                         };
-                        reader.Close();
+                        }
+                        employee.trainingPrograms = GetAllTrainingPrograms(id);
+
+                        
                         return View(employee);
                     }
                     reader.Close();
@@ -80,13 +92,13 @@ namespace BangazonWorkforce.Controllers
             var departments = GetDepartments().Select(d => new SelectListItem
             {
                 Text = d.Name,
-                Value = d.Id.ToString()
+                    Value = d.Id.ToString()
             }).ToList();
 
             var computers = GetUnAssignedComputers().Select(c => new SelectListItem
             {
                 Text = c.Make + " " + c.Model,
-                Value = c.Id.ToString()
+                    Value = c.Id.ToString()
             }).ToList();
             var viewModel = new EmployeeViewModel()
             {
@@ -98,7 +110,6 @@ namespace BangazonWorkforce.Controllers
             };
             return View(viewModel);
 
-
         }
 
         // POST: Employees/Create
@@ -109,10 +120,10 @@ namespace BangazonWorkforce.Controllers
             {
                 try
                 {
-                    using (SqlConnection conn = Connection)
+                    using(SqlConnection conn = Connection)
                     {
                         conn.Open();
-                        using (SqlCommand cmd = conn.CreateCommand())
+                        using(SqlCommand cmd = conn.CreateCommand())
                         {
                             cmd.CommandText = @"INSERT INTO Employee (FirstName, LastName, Email, IsSupervisor, DepartmentId, ComputerId)
                                             VALUES (@FirstName, @LastName, @Email, @IsSupervisor,@DepartmentId,@ComputerId )";
@@ -145,17 +156,17 @@ namespace BangazonWorkforce.Controllers
                 var computers = GetComputers().Select(c => new SelectListItem
                 {
                     Text = c.Make + " " + c.Model,
-                    Value = c.Id.ToString()
+                        Value = c.Id.ToString()
                 }).ToList();
                 var departments = GetDepartments().Select(d => new SelectListItem
                 {
                     Text = d.Name,
-                    Value = d.Id.ToString()
+                        Value = d.Id.ToString()
                 }).ToList();
-                using (SqlConnection conn = Connection)
+                using(SqlConnection conn = Connection)
                 {
                     conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
+                    using(SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = @"SELECT Id, FirstName, LastName, DepartmentId, Email, ComputerId 
                                         FROM Employee
@@ -194,7 +205,6 @@ namespace BangazonWorkforce.Controllers
                 return View();
             }
 
-
         }
 
         // POST: Employees/Edit/5
@@ -204,10 +214,10 @@ namespace BangazonWorkforce.Controllers
         {
             try
             {
-                using (SqlConnection conn = Connection)
+                using(SqlConnection conn = Connection)
                 {
                     conn.Open();
-                    using (SqlCommand cmd = conn.CreateCommand())
+                    using(SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = @"UPDATE Employee
                                             Set 
@@ -217,7 +227,6 @@ namespace BangazonWorkforce.Controllers
                                             ComputerId = @computerId,
                                             isSupervisor = @isSupervisor
                                             WHERE Id = @id";
-
 
                         cmd.Parameters.Add(new SqlParameter("@lastName", employee.LastName));
                         cmd.Parameters.Add(new SqlParameter("@departmentId", employee.DepartmentId));
@@ -263,10 +272,10 @@ namespace BangazonWorkforce.Controllers
 
         private List<Department> GetDepartments()
         {
-            using (SqlConnection conn = Connection)
+            using(SqlConnection conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using(SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT Id, Name
                                        FROM Department";
@@ -280,7 +289,7 @@ namespace BangazonWorkforce.Controllers
                         departments.Add(new Department
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Name = reader.GetString(reader.GetOrdinal("Name"))
+                                Name = reader.GetString(reader.GetOrdinal("Name"))
 
                         });
                     }
@@ -294,10 +303,10 @@ namespace BangazonWorkforce.Controllers
 
         private List<Computer> GetUnAssignedComputers()
         {
-            using (SqlConnection conn = Connection)
+            using(SqlConnection conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using(SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT c.Id, c.PurchaseDate, c.Make, c.Model FROM Computer c 
                                         LEFT JOIN Employee e ON c.Id = e.ComputerId
@@ -312,9 +321,9 @@ namespace BangazonWorkforce.Controllers
                         computers.Add(new Computer
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Model = reader.GetString(reader.GetOrdinal("Model"))
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Model = reader.GetString(reader.GetOrdinal("Model"))
 
                         });
                     }
@@ -360,10 +369,10 @@ namespace BangazonWorkforce.Controllers
         //}
         private List<Computer> GetComputers()
         {
-            using (SqlConnection conn = Connection)
+            using(SqlConnection conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using(SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"SELECT Id, Make, Model 
                                        FROM Computer";
@@ -372,12 +381,11 @@ namespace BangazonWorkforce.Controllers
                     while (reader.Read())
                     {
 
-
                         computers.Add(new Computer
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Make = reader.GetString(reader.GetOrdinal("Make")),
-                            Model = reader.GetString(reader.GetOrdinal("Model"))
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Model = reader.GetString(reader.GetOrdinal("Model"))
                         });
                     }
                     reader.Close();
@@ -387,15 +395,13 @@ namespace BangazonWorkforce.Controllers
             }
         }
 
-
-
         private List<Employee> GetAllEmployees()
         {
             // step 1 open the connection
-            using (SqlConnection conn = Connection)
+            using(SqlConnection conn = Connection)
             {
                 conn.Open();
-                using (SqlCommand cmd = conn.CreateCommand())
+                using(SqlCommand cmd = conn.CreateCommand())
                 {
                     // step 2. create the query
                     cmd.CommandText = @"Select e.Id, e.FirstName, e.LastName,  d.[Name] As Department FROM Employee e 
@@ -404,7 +410,6 @@ namespace BangazonWorkforce.Controllers
                     SqlDataReader reader = cmd.ExecuteReader();
                     // create a collection to keep the list of cohorts
                     List<Employee> employees = new List<Employee>();
-
 
                     // run the query and hold the results in an object
                     while (reader.Read())
@@ -417,7 +422,7 @@ namespace BangazonWorkforce.Controllers
                             LastName = reader.GetString(reader.GetOrdinal("LastName")),
                             Department = new Department
                             {
-                                Name = reader.GetString(reader.GetOrdinal("Department"))
+                            Name = reader.GetString(reader.GetOrdinal("Department"))
                             }
                         };
                         employees.Add(employee);
@@ -427,44 +432,73 @@ namespace BangazonWorkforce.Controllers
                     return employees;
                 }
             }
+
+        }
+
+        private List<TrainingProgram> GetAllTrainingPrograms(int employeeId)
+        {
+
+            using(SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using(SqlCommand cmd = conn.CreateCommand())
+                {
+                    // step 2. create the query
+                    cmd.CommandText = @"Select tp.Id, tp.Name, tp.StartDate, tp.EndDate FROM TrainingProgram tp 
+                                    Inner Join EmployeeTraining et ON tp.Id = et.TrainingProgramId
+                                    WHERE EmployeeId = @employeeId";
+                                    cmd.Parameters.Add(new SqlParameter("@employeeId", employeeId));
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    // create a collection to keep the list of cohorts
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+
+                    // run the query and hold the results in an object
+                    while (reader.Read())
+                    {
+                        TrainingProgram trainingProgram = new TrainingProgram
+                        {
+
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+
+                        };
+                        trainingPrograms.Add(trainingProgram);
+                    }
+                    reader.Close();
+                    return trainingPrograms;
+                }
+            }
         }
     }
 }
 
+//private List<Department> GetDepartments()
+//{
+//    using (SqlConnection conn = Connection)
+//    {
+//        conn.Open();
+//        using (SqlCommand cmd = conn.CreateCommand())
+//        {
+//            cmd.CommandText = @"SELECT Id, Name, Budget 
+//                               FROM Departments";
 
+//            var reader = cmd.ExecuteReader();
 
-                    
-                
+//            var departments = new List<Department>();
 
+//            while (reader.Read())
+//            {
+//                departments.Add(new Department
+//                {
+//                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
+//                    Name = reader.GetString(reader.GetOrdinal("Name")),
+//                    Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
 
-                    //private List<Department> GetDepartments()
-                    //{
-                    //    using (SqlConnection conn = Connection)
-                    //    {
-                    //        conn.Open();
-                    //        using (SqlCommand cmd = conn.CreateCommand())
-                    //        {
-                    //            cmd.CommandText = @"SELECT Id, Name, Budget 
-                    //                               FROM Departments";
+//                });
+//            }
 
-                    //            var reader = cmd.ExecuteReader();
+//            reader.Close();
 
-                    //            var departments = new List<Department>();
-
-                    //            while (reader.Read())
-                    //            {
-                    //                departments.Add(new Department
-                    //                {
-                    //                    Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                    //                    Name = reader.GetString(reader.GetOrdinal("Name")),
-                    //                    Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
-
-                    //                });
-                    //            }
-
-                    //            reader.Close();
-
-                    //            return departments;
-                    //        }
-                    //    }
-                    //}
+//            return departments;
+//        }
+//    }
+//}
