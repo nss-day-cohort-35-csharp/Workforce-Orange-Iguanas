@@ -74,8 +74,95 @@ namespace BangazonWorkforce.Controllers
             }
         }
 
+        // GET: Past TrainingPrograms
+        public async Task<ActionResult> PastIndex()
+        {
+
+            string sql = @"
+                        SELECT t.Id,
+                        t.[Name],
+                        t.Startdate,
+                        t.EndDate,
+                        t.MaxAttendees
+                        FROM TrainingProgram t
+                        WHERE StartDate < @Today";
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.Parameters.Add(new SqlParameter("@Today", DateTime.Today));
+
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+
+                    List<TrainingProgram> programs = new List<TrainingProgram>();
+                    while (reader.Read())
+                    {
+                        TrainingProgram program = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees"))
+                        };
+
+                        programs.Add(program);
+                    }
+
+                    reader.Close();
+
+                    return View(programs);
+                }
+            }
+        }
+
         // GET: TrainingPrograms/Details/5
         public ActionResult Details(int id)
+        {
+            string sql = @"SELECT t.Id,
+                    t.[Name],
+                    t.StartDate,
+                    t.EndDate, 
+                    t.MaxAttendees
+                    FROM TrainingProgram t
+                    WHERE Id = @Id";
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = sql;
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    TrainingProgram program = new TrainingProgram();
+                    if (reader.Read())
+                    {
+                        program = new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+                            MaxAttendees = reader.GetInt32(reader.GetOrdinal("MaxAttendees")),
+                            Attendees = GetAllEmployees(id)
+                        };
+                    }
+
+                    reader.Close();
+
+                    return View(program);
+                }
+            }
+        }
+
+        // GET: TrainingPrograms/PastDetails/5
+        public ActionResult PastDetails(int id)
         {
             string sql = @"SELECT t.Id,
                     t.[Name],
