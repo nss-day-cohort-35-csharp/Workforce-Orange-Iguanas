@@ -2,6 +2,10 @@
     background-image: linear-gradient(rgb(171, 216, 222), rgb(232, 245, 247));
 }
 
+body {
+    background-image: linear-gradient(rgb(171, 216, 222), rgb(232, 245, 247));
+}
+
 label {
     font-family: 'Gelasio', serif;
 }
