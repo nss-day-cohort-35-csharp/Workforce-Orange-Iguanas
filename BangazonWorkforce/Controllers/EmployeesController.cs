@@ -73,7 +73,7 @@ namespace BangazonWorkforce.Controllers
                             } 
                         };
                         }
-                        employee.trainingPrograms = GetAllTrainingPrograms(id);
+                        employee.trainingPrograms = GetTrainingProgramsByEmployeeId(id);
 
                         
                         return View(employee);
@@ -83,7 +83,7 @@ namespace BangazonWorkforce.Controllers
 
                 }
             }
-            return View();
+            
         }
 
         // GET: Employee/Create
@@ -394,7 +394,59 @@ namespace BangazonWorkforce.Controllers
                 }
             }
         }
+        public ActionResult AssignTraining(int Id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT tp.Id, tp.Name, tp.StartDate, tp.EndDate 
+                                       FROM TrainingProgram tp WHERE tp.Id NOT IN (SELECT TrainingProgramId FROM EmployeeTraining WHERE EmployeeId = @employeeId)";
+                    cmd.Parameters.Add(new SqlParameter("@employeeId", Id));
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    var trainingPrograms = new List<TrainingProgram>();
+                    while (reader.Read())
+                    {
 
+                        trainingPrograms.Add(new TrainingProgram
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
+
+                        });
+                       
+                    }
+                    
+                    reader.Close();
+
+                    return View(trainingPrograms);
+                }
+            }
+        }
+        [HttpPost]
+        public ActionResult AssignTraining(int id, List<int> trainingProgramIds)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                foreach( var trainingProgramId in trainingProgramIds)
+                {
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"INSERT INTO EmployeeTraining (EmployeeId, TrainingProgramId)
+                                            VALUES(@EmployeeId, @TrainingProgramId)";
+
+                        cmd.Parameters.Add(new SqlParameter("@EmployeeId", id));
+                        cmd.Parameters.Add(new SqlParameter("@TrainingProgramId", trainingProgramId));
+                        cmd.ExecuteNonQuery();
+                    };
+                }
+            }
+            return RedirectToAction("Details", new { id = id });
+        }
         private List<Employee> GetAllEmployees()
         {
             // step 1 open the connection
@@ -459,6 +511,42 @@ namespace BangazonWorkforce.Controllers
                         {
 
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
+
+                        };
+                        trainingPrograms.Add(trainingProgram);
+                    }
+                    reader.Close();
+                    return trainingPrograms;
+                }
+            }
+        }
+        private List<TrainingProgram> GetTrainingProgramsByEmployeeId(int employeeId)
+        {
+
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    // step 2. create the query
+                    cmd.CommandText = @"Select tp.Id, tp.Name, tp.StartDate, tp.EndDate FROM TrainingProgram tp 
+                                    Inner Join EmployeeTraining et ON tp.Id = et.TrainingProgramId
+                                    WHERE EmployeeId = @employeeId";
+                    cmd.Parameters.Add(new SqlParameter("@employeeId", employeeId));
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    // create a collection to keep the list of cohorts
+                    List<TrainingProgram> trainingPrograms = new List<TrainingProgram>();
+
+                    // run the query and hold the results in an object
+                    while (reader.Read())
+                    {
+                        TrainingProgram trainingProgram = new TrainingProgram
+                        {
+
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            StartDate = reader.GetDateTime(reader.GetOrdinal("StartDate")),
+                            EndDate = reader.GetDateTime(reader.GetOrdinal("EndDate")),
 
                         };
                         trainingPrograms.Add(trainingProgram);
