@@ -1,0 +1,64 @@
+﻿@model IEnumerable<BangazonWorkforce.Models.TrainingProgram>
+
+@{
+    ViewData["Title"] = "AssignTraining";
+}
+
+<h1>AssignTraining</h1>
+
+<p>
+    <h6>Employee Name:  </h6>
+</p>
+<form method="post">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.Id)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.StartDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.EndDate)
+                </th>
+          
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                       <input type="checkbox" name="trainingProgramIds" value="@item.Id"/>  
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.StartDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.EndDate)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MaxAttendees)
+                    </td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new
+                        { /* id=item.PrimaryKey }) |
+                        @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */
+                        }) |
+                        @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                    </td>
+                </tr>
+
+            }
+        </tbody>
+    </table>
+    <button type="submit">Submit</button>
+</form>

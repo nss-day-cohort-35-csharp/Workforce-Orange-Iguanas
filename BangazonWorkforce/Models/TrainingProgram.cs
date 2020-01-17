@@ -26,5 +26,6 @@ namespace BangazonWorkforce.Models
         public int MaxAttendees { get; set; }
         public List<Employee> Attendees { get; set; }
 
+        
     }
 }
