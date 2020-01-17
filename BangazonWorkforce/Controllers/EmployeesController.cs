@@ -310,7 +310,7 @@ namespace BangazonWorkforce.Controllers
                 {
                     cmd.CommandText = @"SELECT c.Id, c.PurchaseDate, c.Make, c.Model FROM Computer c 
                                         LEFT JOIN Employee e ON c.Id = e.ComputerId
-                                        WHERE e.Id IS NULL";
+                                        WHERE e.Id IS NULL AND c.DecomissionDate IS NULL";
 
                     var reader = cmd.ExecuteReader();
 

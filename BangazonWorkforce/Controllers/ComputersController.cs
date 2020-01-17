@@ -33,7 +33,7 @@ namespace BangazonWorkforce.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"SELECT Id, PurchaseDate, Make, Model FROM Computer ";
+                    cmd.CommandText = @"SELECT Id, PurchaseDate,  Make, Model FROM Computer ";
                     if (!string.IsNullOrWhiteSpace(searchString))
                     {
                         cmd.CommandText += @" WHERE Make LIKE @searchString OR Model LIKE @searchString";
@@ -51,9 +51,53 @@ namespace BangazonWorkforce.Controllers
                             Model = reader.GetString(reader.GetOrdinal("Model"))
 
                         });
+                        
                     }
                     reader.Close();
                     return View(computers);
+                }
+            }
+        }
+
+        public ActionResult Details(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT Id, PurchaseDate, Make, Model FROM Computer
+                                        WHERE Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    var reader = cmd.ExecuteReader();
+
+                    Computer computer = null;
+
+                    while (reader.Read())
+                    {
+                        if (computer == null)
+                        {
+                            computer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Model = reader.GetString(reader.GetOrdinal("Model"))
+                              
+                            };
+                        }
+                       
+                    }
+
+                    reader.Close();
+                    ViewBag.Employee = GetEmployeeByComputerId(id);
+
+                    if (computer == null)
+                    {
+                        return NotFound();
+                    }
+                    return View(computer);
+
                 }
             }
         }
