@@ -1,7 +1,7 @@
 ﻿@model BangazonWorkforce.Models.TrainingProgram
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "PastDetails";
 }
 
     <body class="customBackground">
@@ -76,10 +76,8 @@
             <h6>No Employees are attending this class.</h6>
         }
 
-
         <div>
-            @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
-            <a asp-action="Index">Back to List</a>
+            <a asp-action="PastIndex">Back to List</a>
         </div>
 
     </body>
