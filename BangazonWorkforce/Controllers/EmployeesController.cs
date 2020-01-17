@@ -83,7 +83,7 @@ namespace BangazonWorkforce.Controllers
 
                 }
             }
-            return View();
+            
         }
 
         // GET: Employee/Create

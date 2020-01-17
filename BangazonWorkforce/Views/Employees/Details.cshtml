@@ -48,27 +48,34 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Computer.Make) -- @Html.DisplayFor(model => model.Computer.Model)
         </dd>
-        <h6>Traning Programs Assigned to @Model.FirstName </h6>
-        <table class="table">
-            <thead>
+
+    </dl>
+    <h6>Future Training Programs Assigned to @Model.FirstName </h6>
 
 
-                <tr>
-                    <th>
-                        @Html.DisplayNameFor(model => model.TrainingProgram.Name)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.TrainingProgram.StartDate)
-                    </th>
-                    <th>
-                        @Html.DisplayNameFor(model => model.TrainingProgram.EndDate)
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var trainingProgram in Model.trainingPrograms)
+    <table class="table">
+        <thead>
+
+
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.TrainingProgram.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TrainingProgram.StartDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TrainingProgram.EndDate)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var trainingProgram in Model.trainingPrograms)
+            {
+                @if (trainingProgram.EndDate > DateTime.Today)
                 {
                     <tr>
+
                         <td>
                             @Html.DisplayFor(modelItem => trainingProgram.Name)
                         </td>
@@ -80,12 +87,51 @@
                         </td>
                     </tr>
 
+                }
+
+            }
+        </tbody>
+    </table>
+    <table class="table">
+        <thead>
+
+
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.TrainingProgram.Name)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TrainingProgram.StartDate)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.TrainingProgram.EndDate)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+                    <h6>Completed Training Programs Assigned to @Model.FirstName </h6>
+            @foreach (var trainingProgram in Model.trainingPrograms)
+            {
+                @if (trainingProgram.EndDate < DateTime.Today)
+                {
+                    <tr>
+
+                        <td>
+                            @Html.DisplayFor(modelItem => trainingProgram.Name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => trainingProgram.StartDate)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => trainingProgram.EndDate)
+                        </td>
+                    </tr>
 
                 }
-            </tbody>
-        </table>
 
-    </dl>
+            }
+        </tbody>
+    </table>
 </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
